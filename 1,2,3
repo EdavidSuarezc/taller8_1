@@ -2,7 +2,7 @@
 #!/bin/bash
 
 # Archivo de salida
-output_file="save_hour.txt"
+output_file="guarda_hora.txt"
 
 # Loop infinito para guardar la hora cada 5 segundos
 while true; do
