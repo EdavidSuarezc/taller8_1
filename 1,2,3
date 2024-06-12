@@ -1,0 +1,82 @@
+1. Script para guardar la hora del sistema cada 5 segundos en save_hour.txt
+#!/bin/bash
+
+# Archivo de salida
+output_file="save_hour.txt"
+
+# Loop infinito para guardar la hora cada 5 segundos
+while true; do
+    # Obtener la hora actual y guardarla en el archivo
+    date +"%H:%M:%S" >> "$output_file"
+    # Esperar 5 segundos antes de la próxima iteración
+    sleep 5
+done
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+2. Script para guardar estadísticas de uso de memoria y CPU cada N segundos en recursos.csv
+#!/bin/bash
+
+# Verificar que se haya pasado un argumento (N)
+if [ -z "$1" ]; then
+    echo "Uso: $0 <intervalo en segundos>"
+    exit 1
+fi
+
+# Intervalo en segundos pasado por el usuario
+intervalo=$1
+
+# Archivo de salida
+output_file="recursos.csv"
+
+# Agregar encabezados al archivo CSV
+echo "Timestamp,CPU(%),Memoria(%)" > "$output_file"
+
+# Loop infinito para guardar estadísticas cada N segundos
+while true; do
+    # Obtener la fecha y hora actual
+    timestamp=$(date +"%Y-%m-%d %H:%M:%S")
+    
+    # Obtener el uso de CPU y memoria
+    cpu_usage=$(top -bn1 | grep "Cpu(s)" | awk '{print $2 + $4}')
+    mem_usage=$(free | grep Mem | awk '{print $3/$2 * 100.0}')
+    
+    # Guardar las estadísticas en el archivo CSV
+    echo "$timestamp,$cpu_usage,$mem_usage" >> "$output_file"
+    
+    # Esperar N segundos antes de la próxima iteración
+    sleep "$intervalo"
+done
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+3. Graficar el consumo de CPU y Memoria usando recursos.csv
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Leer el archivo CSV
+data = pd.read_csv('recursos.csv')
+
+# Convertir la columna Timestamp a datetime
+data['Timestamp'] = pd.to_datetime(data['Timestamp'])
+
+# Graficar el uso de CPU
+plt.figure(figsize=(10, 5))
+plt.plot(data['Timestamp'], data['CPU(%)'], label='Uso de CPU (%)', color='b')
+plt.xlabel('Tiempo')
+plt.ylabel('Uso de CPU (%)')
+plt.title('Uso de CPU a lo largo del tiempo')
+plt.legend()
+plt.grid(True)
+plt.savefig('cpu_usage.png')
+plt.show()
+
+# Graficar el uso de Memoria
+plt.figure(figsize=(10, 5))
+plt.plot(data['Timestamp'], data['Memoria(%)'], label='Uso de Memoria (%)', color='r')
+plt.xlabel('Tiempo')
+plt.ylabel('Uso de Memoria (%)')
+plt.title('Uso de Memoria a lo largo del tiempo')
+plt.legend()
+plt.grid(True)
+plt.savefig('memory_usage.png')
+plt.show()
